@@ -287,6 +287,7 @@
                 const data = await response.text();
                 console.log('[CMD] Response:', data);
                 
+                // PINDAH HALAMAN CUMA KALAU SUKSES
                 if (action === 'menu') {
                     window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
                 } else if (action === 'standby') {
@@ -294,11 +295,8 @@
                 }
             } catch (err) {
                 console.log('[CMD] Error:', err);
-                if (action === 'menu') {
-                    window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
-                } else if (action === 'standby') {
-                    window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
-                }
+                // JANGAN PINDAH HALAMAN! KASIH TAU USER KALO GAGAL
+                alert('Gagal mengirim perintah ke ESP32! Pastikan koneksi ke nexion.local lancar.');
             }
         }
     </script>
