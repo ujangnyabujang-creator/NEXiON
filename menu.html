@@ -242,8 +242,14 @@
     </div>
 
     <script>
+        // ============================================
+        // TETAP PAKE NEXION.LOCAL
+        // ============================================
         const ESP32_IP = 'http://nexion.local';
 
+        // ============================================
+        // FULLSCREEN UNTUK IOS & ANDROID
+        // ============================================
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {});
@@ -254,71 +260,67 @@
             }
         }
 
+        // ============================================
+        // POLLING - PAKAI setInterval (STABIL DI IOS)
+        // ============================================
         let lastState = '';
-        let pollingActive = true;
 
-        // ============================================
-        // checkState - FIX: LANGSUNG KE GITHUB
-        // ============================================
         function checkState() {
-            if (!pollingActive) return;
             const timestamp = Date.now();
             fetch(ESP32_IP + '/api/state?t=' + timestamp, {
                 cache: 'no-store',
                 headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
             })
-                .then(res => {
-                    if (!res.ok) throw new Error('Network error');
-                    return res.json();
-                })
-                .then(data => {
-                    const currentPath = window.location.pathname.replace(/\/$/, '');
-                    console.log('[Polling] State:', data.mode, 'Path:', currentPath);
-                    if (data.mode !== lastState) {
-                        lastState = data.mode;
-                        if (data.mode === 'standby') {
-                            window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
-                        } else if (data.mode === 'menu') {
-                            window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
-                        }
+            .then(res => {
+                if (!res.ok) throw new Error('Network error');
+                return res.json();
+            })
+            .then(data => {
+                console.log('[Polling] State:', data.mode);
+                if (data.mode !== lastState) {
+                    lastState = data.mode;
+                    if (data.mode === 'standby') {
+                        window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
+                    } else if (data.mode === 'menu') {
+                        window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
                     }
-                })
-                .catch(err => console.log('[Polling] Error:', err));
-
-            setTimeout(checkState, 1000);
+                }
+            })
+            .catch(err => console.log('[Polling] Error:', err));
         }
 
-        setTimeout(checkState, 500);
+        setInterval(checkState, 1500);
 
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
-                fetch(ESP32_IP + '/api/state?t=' + Date.now(), { cache: 'no-store' })
-                    .then(res => res.json())
-                    .then(data => {
-                        const currentPath = window.location.pathname.replace(/\/$/, '');
-                        if (data.mode === 'standby') {
-                            window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
-                        } else if (data.mode === 'menu') {
-                            window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
-                        }
-                    })
-                    .catch(err => {});
-            }
-        });
-
-        const eventSource = new EventSource(ESP32_IP + '/events');
-        eventSource.addEventListener('state', function(e) {
-            console.log('[SSE] State:', e.data);
-            const state = e.data;
-            if (state === 'standby') {
-                window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
-            } else if (state === 'menu') {
-                window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
+                checkState();
             }
         });
 
         // ============================================
-        // sendCommand - KIRIM KE ESP32 DULU, BARU PINDAH
+        // SSE - TETAP JALAN TAPI FALLBACK KE POLLING
+        // ============================================
+        let eventSource = null;
+        try {
+            eventSource = new EventSource(ESP32_IP + '/events');
+            eventSource.addEventListener('state', function(e) {
+                console.log('[SSE] State:', e.data);
+                const state = e.data;
+                if (state === 'standby') {
+                    window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
+                } else if (state === 'menu') {
+                    window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
+                }
+            });
+            eventSource.onerror = function() {
+                console.log('[SSE] Error - fallback ke polling');
+            };
+        } catch (err) {
+            console.log('[SSE] Not supported - fallback ke polling');
+        }
+
+        // ============================================
+        // sendCommand - KIRIM KE ESP32, BARU PINDAH
         // ============================================
         async function sendCommand(action) {
             try {
