@@ -211,6 +211,9 @@
         let lastState = '';
         let pollingActive = true;
 
+        // ============================================
+        // checkState - FIX: LANGSUNG KE GITHUB
+        // ============================================
         function checkState() {
             if (!pollingActive) return;
             const timestamp = Date.now();
@@ -227,10 +230,10 @@
                     console.log('[Polling] State:', data.mode, 'Path:', currentPath);
                     if (data.mode !== lastState) {
                         lastState = data.mode;
-                        if (data.mode === 'standby' && currentPath !== '') {
-                            window.location.replace('/');
-                        } else if (data.mode === 'menu' && currentPath !== '/menu') {
-                            window.location.replace('/menu');
+                        if (data.mode === 'standby') {
+                            window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
+                        } else if (data.mode === 'menu') {
+                            window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
                         }
                     }
                 })
@@ -247,10 +250,10 @@
                     .then(res => res.json())
                     .then(data => {
                         const currentPath = window.location.pathname.replace(/\/$/, '');
-                        if (data.mode === 'standby' && currentPath !== '') {
-                            window.location.replace('/');
-                        } else if (data.mode === 'menu' && currentPath !== '/menu') {
-                            window.location.replace('/menu');
+                        if (data.mode === 'standby') {
+                            window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
+                        } else if (data.mode === 'menu') {
+                            window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
                         }
                     })
                     .catch(err => {});
@@ -261,16 +264,15 @@
         eventSource.addEventListener('state', function(e) {
             console.log('[SSE] State:', e.data);
             const state = e.data;
-            const currentPath = window.location.pathname.replace(/\/$/, '');
-            if (state === 'standby' && currentPath !== '') {
-                window.location.replace('/');
-            } else if (state === 'menu' && currentPath !== '/menu') {
-                window.location.replace('/menu');
+            if (state === 'standby') {
+                window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
+            } else if (state === 'menu') {
+                window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
             }
         });
 
         // ============================================
-        // FUNGSI sendCommand - KIRIM KE ESP32 DULU, BARU PINDAH HALAMAN
+        // sendCommand - KIRIM KE ESP32 DULU, BARU PINDAH
         // ============================================
         async function sendCommand(action) {
             try {
