@@ -197,9 +197,9 @@
 
     <script>
         // ============================================
-        // IP ESP32 - GUNAKAN IP LANGSUNG (BUKAN mDNS)
+        // TETAP PAKE NEXION.LOCAL
         // ============================================
-        const ESP32_IP = 'http://192.168.1.94';  // GANTI SESUAI IP ESP32 LO
+        const ESP32_IP = 'http://nexion.local';
 
         // ============================================
         // FULLSCREEN UNTUK IOS & ANDROID
@@ -243,10 +243,8 @@
             .catch(err => console.log('[Polling] Error:', err));
         }
 
-        // Polling setiap 1.5 detik (lebih aman buat iOS)
         setInterval(checkState, 1500);
 
-        // Cek saat tab aktif (user balik ke tab)
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
                 checkState();
