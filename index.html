@@ -210,6 +210,9 @@
 
         let lastState = '';
 
+        // ============================================
+        // POLLING - PAKAI setInterval (STABIL DI ANDROID)
+        // ============================================
         function checkState() {
             const timestamp = Date.now();
             fetch(ESP32_IP + '/api/state?t=' + timestamp, {
@@ -242,6 +245,9 @@
             }
         });
 
+        // ============================================
+        // SSE - FALLBACK KE POLLING
+        // ============================================
         let eventSource = null;
         try {
             eventSource = new EventSource(ESP32_IP + '/events');
@@ -261,6 +267,9 @@
             console.log('[SSE] Not supported - fallback ke polling');
         }
 
+        // ============================================
+        // sendCommand - PINDAH CUMA KALAU SUKSES
+        // ============================================
         async function sendCommand(action) {
             try {
                 console.log('[CMD] Sending:', action);
@@ -279,7 +288,7 @@
                 }
             } catch (err) {
                 console.log('[CMD] Error:', err);
-                //  JANGAN PINDAH HALAMAN! TAPI TIDAK ADA ALERT (Biar iOS gak protes)
+                // JANGAN PINDAH HALAMAN KALO GAGAL
             }
         }
     </script>
