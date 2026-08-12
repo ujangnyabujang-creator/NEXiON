@@ -196,14 +196,8 @@
     </div>
 
     <script>
-        // ============================================
-        // TETAP PAKE NEXION.LOCAL
-        // ============================================
         const ESP32_IP = 'http://nexion.local';
 
-        // ============================================
-        // FULLSCREEN UNTUK IOS & ANDROID
-        // ============================================
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {});
@@ -214,9 +208,6 @@
             }
         }
 
-        // ============================================
-        // POLLING - PAKAI setInterval (STABIL DI IOS)
-        // ============================================
         let lastState = '';
 
         function checkState() {
@@ -251,9 +242,6 @@
             }
         });
 
-        // ============================================
-        // SSE - TETAP JALAN TAPI FALLBACK KE POLLING
-        // ============================================
         let eventSource = null;
         try {
             eventSource = new EventSource(ESP32_IP + '/events');
@@ -273,9 +261,6 @@
             console.log('[SSE] Not supported - fallback ke polling');
         }
 
-        // ============================================
-        // sendCommand - KIRIM KE ESP32, BARU PINDAH
-        // ============================================
         async function sendCommand(action) {
             try {
                 console.log('[CMD] Sending:', action);
@@ -287,7 +272,6 @@
                 const data = await response.text();
                 console.log('[CMD] Response:', data);
                 
-                // PINDAH HALAMAN CUMA KALAU SUKSES
                 if (action === 'menu') {
                     window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
                 } else if (action === 'standby') {
@@ -295,8 +279,7 @@
                 }
             } catch (err) {
                 console.log('[CMD] Error:', err);
-                // JANGAN PINDAH HALAMAN! KASIH TAU USER KALO GAGAL
-                alert('Gagal mengirim perintah ke ESP32! Pastikan koneksi ke nexion.local lancar.');
+                //  JANGAN PINDAH HALAMAN! TAPI TIDAK ADA ALERT (Biar iOS gak protes)
             }
         }
     </script>
