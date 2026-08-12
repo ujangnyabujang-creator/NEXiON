@@ -316,25 +316,30 @@
         });
 
         // ============================================
-        // FUNGSI sendCommand() YANG DIPERBAIKI
+        // FUNGSI sendCommand - KIRIM KE ESP32 DULU, BARU PINDAH HALAMAN
         // ============================================
         async function sendCommand(action) {
-            if (action === 'menu') {
-                window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
-            } else if (action === 'standby') {
-                window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
-            } else {
-                // Untuk command lain (kalo ada), kirim ke ESP32
-                try {
-                    const response = await fetch(ESP32_IP + '/api/command', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: 'action=' + action
-                    });
-                    const data = await response.text();
-                    console.log('[CMD] Response:', data);
-                } catch (err) {
-                    console.log('[CMD] Error:', err);
+            try {
+                console.log('[CMD] Sending:', action);
+                const response = await fetch(ESP32_IP + '/api/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'action=' + action
+                });
+                const data = await response.text();
+                console.log('[CMD] Response:', data);
+                
+                if (action === 'menu') {
+                    window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
+                } else if (action === 'standby') {
+                    window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
+                }
+            } catch (err) {
+                console.log('[CMD] Error:', err);
+                if (action === 'menu') {
+                    window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
+                } else if (action === 'standby') {
+                    window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
                 }
             }
         }
