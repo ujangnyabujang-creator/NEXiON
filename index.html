@@ -269,27 +269,26 @@
             }
         });
 
+        // ============================================
+        // FUNGSI sendCommand() YANG DIPERBAIKI
+        // ============================================
         async function sendCommand(action) {
-            try {
-                console.log('[CMD] Sending:', action);
-                const response = await fetch(ESP32_IP + '/api/command', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'action=' + action
-                });
-                const data = await response.text();
-                console.log('[CMD] Response:', data);
-                if (action === 'menu') {
-                    window.location.replace('/menu');
-                } else if (action === 'standby') {
-                    window.location.replace('/');
-                }
-            } catch (err) {
-                console.log('[CMD] Error:', err);
-                if (action === 'menu') {
-                    window.location.replace('/menu');
-                } else if (action === 'standby') {
-                    window.location.replace('/');
+            if (action === 'menu') {
+                window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/menu.html';
+            } else if (action === 'standby') {
+                window.location.href = 'https://ujangnyabujang-creator.github.io/NEXiON/index.html';
+            } else {
+                // Untuk command lain (kalo ada), kirim ke ESP32
+                try {
+                    const response = await fetch(ESP32_IP + '/api/command', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'action=' + action
+                    });
+                    const data = await response.text();
+                    console.log('[CMD] Response:', data);
+                } catch (err) {
+                    console.log('[CMD] Error:', err);
                 }
             }
         }
