@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEXiON v3.0 - Standby & Guide Station</title>
+    <style>
+        :root {
+            --bg-base: #040609;
+            --panel-base: #0d121c;
+            --border-tech: rgba(0, 240, 255, 0.15);
+            --cyan-glow: #00f0ff;
+            --emerald-glow: #00ff88;
+            --violet-glow: #b055ff;
+            --text-main: #f1f5f9;
+            --text-dim: #64748b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        html, body {
+            width: 100vw; height: 100vh; background-color: var(--bg-base); color: var(--text-main);
+            overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 8px;
+        }
+
+        #rotateWarning {
+            display: none;
+        }
+
+        @media (max-width: 768px) and (orientation: portrait) {
+            #rotateWarning {
+                display: flex !important;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: #040609;
+                z-index: 99999;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 24px;
+                gap: 16px;
+            }
+            body > *:not(#rotateWarning) {
+                display: none !important;
+            }
+        }
+
+        #rotateWarning svg {
+            color: var(--cyan-glow);
+            animation: rotateAnim 2s infinite ease-in-out;
+            width: 48px;
+            height: 48px;
+        }
+        @keyframes rotateAnim {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+        }
+        #rotateWarning h2 {
+            font-size: 1rem;
+            color: var(--cyan-glow);
+        }
+        #rotateWarning p {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+
+        .fullscreen-toggle {
+            background: rgba(0, 240, 255, 0.15);
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            border-radius: 6px;
+            color: var(--cyan-glow);
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            transition: all 0.2s ease;
+            margin-right: 8px;
+        }
+        .fullscreen-toggle:hover {
+            background: rgba(0, 240, 255, 0.3);
+        }
+        .fullscreen-toggle:active {
+            transform: scale(0.9);
+        }
+
+        .console-container {
+            width: 100%; max-width: 1000px; height: 100%; max-height: 520px;
+            background: var(--panel-base); border: 1px solid var(--border-tech);
+            border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+            display: flex; flex-direction: column; overflow: hidden; padding: 20px; gap: 16px;
+            position: relative;
+        }
+        .console-container::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(180deg, var(--cyan-glow), var(--violet-glow));
+        }
+        
+        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .header-flex { display: flex; align-items: center; gap: 15px; }
+        
+        .pulse-icon {
+            width: 48px; height: 48px; border-radius: 50%; background: rgba(0, 240, 255, 0.08);
+            border: 2px solid var(--cyan-glow); display: flex; align-items: center; justify-content: center;
+            color: var(--cyan-glow); cursor: pointer; box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            transition: all 0.2s ease; text-decoration: none; flex-shrink: 0;
+        }
+        .pulse-icon:hover { background: rgba(0, 240, 255, 0.2); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); }
+        .pulse-icon:active { transform: scale(0.92); }
+
+        h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: 0.5px; color: #fff; text-align: left; }
+        p.desc { font-size: 0.75rem; color: var(--text-dim); line-height: 1.4; text-align: left; }
+        
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 6px; background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.3); padding: 4px 12px; border-radius: 20px;
+            font-size: 0.65rem; font-weight: 700; color: var(--emerald-glow); flex-shrink: 0;
+        }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background-color: var(--emerald-glow); box-shadow: 0 0 6px var(--emerald-glow); }
+
+        .grid-guide { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; flex: 1; }
+        .guide-box {
+            background: #111827; border: 1px solid var(--border-tech);
+            border-radius: 10px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px;
+            justify-content: center;
+        }
+        .guide-title {
+            font-size: 0.8rem; font-weight: 700; color: var(--cyan-glow); display: flex; align-items: center; gap: 8px;
+            border-bottom: 1px solid var(--border-tech); padding-bottom: 6px;
+        }
+        .guide-title.ai { color: var(--violet-glow); }
+        ul.feature-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+        ul.feature-list li {
+            font-size: 0.7rem; color: var(--text-main); display: flex; align-items: flex-start; gap: 8px; line-height: 1.3;
+        }
+        ul.feature-list li svg { color: var(--emerald-glow); width: 13px; height: 13px; flex-shrink: 0; margin-top: 2px; }
+        ul.feature-list li.ai-feat svg { color: var(--violet-glow); }
+        
+        @media (max-width: 768px) {
+            .grid-guide { grid-template-columns: 1fr; }
+            .header-top { flex-direction: column; align-items: flex-start; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="rotateWarning">
+        <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" stroke="currentColor" fill="none" stroke-width="2"></rect><line x1="12" y1="18" x2="12" y2="18.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line></svg>
+        <h2>PUTAR PERANGKAT KE LANDSCAPE</h2>
+        <p>Dashboard panduan stasiun siaga dirancang dalam posisi mendatar.</p>
+    </div>
+    
+    <div class="console-container">
+        <div class="header-top">
+            <div class="header-flex">
+                <a href="#" class="pulse-icon" onclick="sendCommand('menu'); return false;" title="Masuk Menu Utama">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.2" fill="none"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                </a>
+                <div>
+                    <h1>NEXiON v3.0 STANDBY STATION</h1>
+                    <p class="desc">Perangkat terhubung via STA Mode. Klik ikon power di samping untuk masuk ke menu instrumen.</p>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center;">
+                <button class="fullscreen-toggle" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
+                <div class="status-pill"><div class="dot"></div> LINK AKTIF</div>
+            </div>
+        </div>
+
+        <div class="grid-guide">
+            <div class="guide-box">
+                <div class="guide-title">
+                    <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M9 9h6v6H9z"></path></svg> 
+                    FUNGSI & FITUR HARDWARE
+                </div>
+                <ul class="feature-list">
+                    <li><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg><span><b>Power Supply OCP:</b> Suplai tegangan presisi (1.2V–17V) dengan proteksi arus berlebih otomatis.</span></li>
+                    <li><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg><span><b>Auto Charge Li-Ion / Aki:</b> Sistem pengisian cerdas dengan deteksi otomatis dan mode CV.</span></li>
+                    <li><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg><span><b>Battery Health & ESR:</b> Pengujian beban baterai untuk mengukur tingkat kesehatan perangkat.</span></li>
+                    <li><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg><span><b>Multimeter & Diode Mode:</b> Pengecekan jalur, titik short, dan resistansi hibrid.</span></li>
+                </ul>
+            </div>
+            <div class="guide-box">
+                <div class="guide-title ai">
+                    <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> 
+                    KEMAMPUAN GEMINI A.I. ASSISTANT
+                </div>
+                <ul class="feature-list">
+                    <li class="ai-feat"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg><span><b>Analisa Kerusakan Instan:</b> Menerima data telemetri real-time disandingkan dengan keluhan servis.</span></li>
+                    <li class="ai-feat"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg><span><b>Rekomendasi Jalur Eksekusi:</b> Memberikan arahan teknis titik ukur atau komponen yang harus dicek.</span></li>
+                    <li class="ai-feat"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg><span><b>Interactive Follow-up:</b> Teknisi dapat langsung mengetik pertanyaan lanjutan untuk diskusi servis.</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ESP32_IP = 'http://nexion.local';
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        let lastState = '';
+        let pollingActive = true;
+
+        function checkState() {
+            if (!pollingActive) return;
+            const timestamp = Date.now();
+            fetch(ESP32_IP + '/api/state?t=' + timestamp, {
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('Network error');
+                    return res.json();
+                })
+                .then(data => {
+                    const currentPath = window.location.pathname.replace(/\/$/, '');
+                    console.log('[Polling] State:', data.mode, 'Path:', currentPath);
+                    if (data.mode !== lastState) {
+                        lastState = data.mode;
+                        if (data.mode === 'standby' && currentPath !== '') {
+                            window.location.replace('/');
+                        } else if (data.mode === 'menu' && currentPath !== '/menu') {
+                            window.location.replace('/menu');
+                        }
+                    }
+                })
+                .catch(err => console.log('[Polling] Error:', err));
+
+            setTimeout(checkState, 1000);
+        }
+
+        setTimeout(checkState, 500);
+
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                fetch(ESP32_IP + '/api/state?t=' + Date.now(), { cache: 'no-store' })
+                    .then(res => res.json())
+                    .then(data => {
+                        const currentPath = window.location.pathname.replace(/\/$/, '');
+                        if (data.mode === 'standby' && currentPath !== '') {
+                            window.location.replace('/');
+                        } else if (data.mode === 'menu' && currentPath !== '/menu') {
+                            window.location.replace('/menu');
+                        }
+                    })
+                    .catch(err => {});
+            }
+        });
+
+        const eventSource = new EventSource(ESP32_IP + '/events');
+        eventSource.addEventListener('state', function(e) {
+            console.log('[SSE] State:', e.data);
+            const state = e.data;
+            const currentPath = window.location.pathname.replace(/\/$/, '');
+            if (state === 'standby' && currentPath !== '') {
+                window.location.replace('/');
+            } else if (state === 'menu' && currentPath !== '/menu') {
+                window.location.replace('/menu');
+            }
+        });
+
+        async function sendCommand(action) {
+            try {
+                console.log('[CMD] Sending:', action);
+                const response = await fetch(ESP32_IP + '/api/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'action=' + action
+                });
+                const data = await response.text();
+                console.log('[CMD] Response:', data);
+                if (action === 'menu') {
+                    window.location.replace('/menu');
+                } else if (action === 'standby') {
+                    window.location.replace('/');
+                }
+            } catch (err) {
+                console.log('[CMD] Error:', err);
+                if (action === 'menu') {
+                    window.location.replace('/menu');
+                } else if (action === 'standby') {
+                    window.location.replace('/');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
